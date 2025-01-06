@@ -22,13 +22,10 @@ def clean_text(text):
     return text
 
 
-#Applies lower case, clean text, tokenization and lemmatization
+#Applies lower case, clean text
 def preprocess_text(text):
     #input("Prima: " + text)
     text = lower_text(text)
     text = clean_text(text)
-    tokens = word_tokenize(text)
-    tokens = [t for t in tokens if t not in stop_words]
-    tokens = [lemmetizer.lemmatize(t) for t in tokens]
     #input("Dopo: " + ' '.join(tokens))
-    return ' '.join(tokens)
+    return text
