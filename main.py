@@ -90,13 +90,15 @@ trainer = Trainer(
     eval_dataset=tokenized_datasets["test"].shuffle(seed=42).select(range(2000)),
     compute_metrics=compute_metrics
 )
-
 # Avvia l'addestramento
 trainer.train()
 
 # Valutazione
 results = trainer.evaluate()
 print("Risultati della valutazione:", results)
+
+model.save_pretrained("./bert_model")
+tokenizer.save_pretrained("./bert_model")
 
 # Salva il modello e il tokenizer
 model.eval()
@@ -115,7 +117,8 @@ logits = outputs.logits
 predicted_class = torch.argmax(logits, dim=-1).item()
 
 # Mostra il risultato
-label_mapping_inverse = {0: "Suicide", 1: "Depression", 2: "Neenagers"}  # Etichette originali del dataset
+label_mapping_inverse = {0: "Suicide", 1: "Depression", 2: "Neutral"}  # Etichette originali del dataset
 predicted_label = label_mapping_inverse[predicted_class]
 print(f"Testo: {prompt}")
 print(f"Classe predetta: {predicted_label}")
+
