@@ -1,55 +1,121 @@
 import pandas as pd
-from tensorflow.python.ops.gen_linalg_ops import batch_svd
 
-import textutils
-# from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-import bert
+df = pd.read_csv("dataset.csv")
 
-def print_initial_info(dataset):
-    # print(dataset.head())
-    # print(dataset.info())
-    print(dataset.describe())
-    #print(dataset.columns)
-    print(dataset['class'].value_counts())
+# Esplora il dataset
+print("Dataset originale:")
+print(df.head())
 
-#Drops null rows and duplicates
-def clean_data(dataset):
-    dataset = dataset.dropna()
-    dataset = dataset.drop_duplicates()
-    return dataset
+# Pulizia del dataset
+# Assumendo che il dataset abbia colonne "text" e "class" (etichette)
+df = df.dropna(subset=["text", "class"]).reset_index(drop=True)  # Rimuovi righe con valori nulli
 
-#Lower case for the text and removes punctuation and number, applies tokenization
-def normalize_data(dataset):
-    dataset['text'] = dataset['text'].apply(textutils.preprocess_text)
-    return dataset
+# Mappa le etichette in valori numerici
+label_mapping = {"SuicideWatch": 0, "depression": 1, "teenagers": 2}
+df["class"] = df["class"].map(label_mapping)
 
-def main():
-    dataset = pd.read_csv("./dataset/cleaned_dataset.csv")
-    dataset = dataset.reset_index(drop=True)
-    # dataset = clean_data(dataset)
-    # dataset = normalize_data(dataset)
-    # dataset = clean_data(dataset)
-    # encoder = LabelEncoder()
-    # dataset['class'] = encoder.fit_transform(dataset['class'])
-    # dataset.to_csv('./dataset/cleaned_dataset.csv', index=False)
-    X_train, X_temp, y_train, y_temp = train_test_split(dataset['text'].reset_index(drop=True), dataset['class'].reset_index(drop=True), test_size=0.2, random_state=42)
-    # Dividi temp in validation (10%) e test (10%)
-    X_val, X_test, y_val, y_test = train_test_split(X_temp.reset_index(drop=True), y_temp.reset_index(drop=True), test_size=0.5, random_state=42)
+# Mostra il dataset pulito
+print("Dataset pulito:")
+print(df.head())
 
-    train_dataset = bert.TextDataset(X_train, y_train, bert.tokenizer)
-    val_dataset = bert.TextDataset(X_val, y_val, bert.tokenizer)
-    test_dataset = bert.TextDataset(X_test, y_test, bert.tokenizer)
+from datasets import Dataset
 
-    batch_size = 16
-    train_loader = bert.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = bert.DataLoader(val_dataset, batch_size=batch_size)
-    test_loader = bert.DataLoader(test_dataset, batch_size=batch_size)
+# Converte il DataFrame in un Dataset di Hugging Face
+dataset = Dataset.from_pandas(df)
 
-    bert.train_model(3, train_loader)
-    bert.evaluate_model(val_loader)
-    bert.evaluate_model(test_loader)
+# Divide il dataset in training e test
+dataset = dataset.train_test_split(test_size=0.2)
+print("Training set:", len(dataset["train"]))
+print("Test set:", len(dataset["test"]))
 
+from transformers import BertTokenizer
 
-if __name__ == "__main__":
-    main()
+# Carica il tokenizer
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+# Funzione di tokenizzazione
+def preprocess_function(examples):
+    return tokenizer(examples["text"], truncation=True, padding="max_length", max_length=256)
+
+# Tokenizza il dataset
+# tokenized_datasets = dataset.map(preprocess_function, batched=True)
+
+# Rinomina la colonna "class" in "labels"
+# tokenized_datasets = tokenized_datasets.rename_column("class", "labels")
+
+# Imposta il formato come tensori PyTorch
+# tokenized_datasets.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
+
+# tokenized_datasets.save_to_disk("./tokenized_datasets")
+from datasets import DatasetDict
+tokenized_datasets = DatasetDict.load_from_disk("./tokenized_datasets")
+from transformers import BertForSequenceClassification
+
+# Carica il modello pre-addestrato con 3 classi
+model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=3)
+for name, param in model.named_parameters():
+  if "encoder.layer.9" not in name and "encoder.layer.10" not in name and "encoder.layer.11" not in name and "classifier" not in name:
+    param.requires_grad = False
+
+from transformers import TrainingArguments, Trainer
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+
+# Configura gli argomenti per l'addestramento
+training_args = TrainingArguments(
+    output_dir="./results",
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=32,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    logging_dir="./logs",
+    logging_steps=100,
+    load_best_model_at_end=True
+)
+
+# Definisci le metriche di valutazione
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = logits.argmax(axis=-1)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average="weighted")
+    acc = accuracy_score(labels, predictions)
+    return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_datasets["train"].shuffle(seed=42).select(range(8000)),
+    eval_dataset=tokenized_datasets["test"].shuffle(seed=42).select(range(2000)),
+    compute_metrics=compute_metrics
+)
+
+# Avvia l'addestramento
+trainer.train()
+
+# Valutazione
+results = trainer.evaluate()
+print("Risultati della valutazione:", results)
+
+# Salva il modello e il tokenizer
+model.eval()
+prompt = "I feel so overwhelmed and hopeless about my future."
+inputs = tokenizer(prompt, return_tensors="pt", truncation=True, padding="max_length", max_length=256)
+
+import torch
+# Passaggio 3: Effettua la predizione
+with torch.no_grad():
+    outputs = model(**inputs)
+
+# Ottieni i logits (valori non normalizzati delle probabilità)
+logits = outputs.logits
+
+# Converti i logits nella classe predetta
+predicted_class = torch.argmax(logits, dim=-1).item()
+
+# Mostra il risultato
+label_mapping_inverse = {0: "Suicide", 1: "Depression", 2: "Neenagers"}  # Etichette originali del dataset
+predicted_label = label_mapping_inverse[predicted_class]
+print(f"Testo: {prompt}")
+print(f"Classe predetta: {predicted_label}")

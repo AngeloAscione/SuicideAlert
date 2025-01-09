@@ -81,4 +81,4 @@ def evaluate_model(test_loader):
             predictions.extend(torch.argmax(logits, dim=1).cpu().numpy())
             true_labels.extend(labels.cpu().numpy())
 
-    print(classification_report(true_labels, predictions, target_names=['SuicideWatch', 'depression', 'teenagers']))
+    print(classification_report(true_labels, predictions, target_names=['suicide', 'depression', 'neutral']))
