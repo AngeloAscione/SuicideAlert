@@ -4,8 +4,6 @@ from transformers import BertTokenizer, BertForSequenceClassification, TrainingA
 import torch
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-
-
 # Configurazione del dispositivo (Apple Silicon)
 device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
 if torch.backends.mps.is_available():
