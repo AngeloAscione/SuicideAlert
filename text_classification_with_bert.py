@@ -5,6 +5,8 @@ import torch
 MODEL_PATH = "./bert_model"  # Percorso dove è stato salvato il modello
 tokenizer = BertTokenizer.from_pretrained(MODEL_PATH)
 model = BertForSequenceClassification.from_pretrained(MODEL_PATH)
+device = torch.device("mps")
+model.to(device)
 
 # Mappa delle etichette
 label_mapping_inverse = {
