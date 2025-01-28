@@ -8,7 +8,7 @@ if torch.backends.mps.is_available():
     print("Torch è configurato per utilizzare il backend MPS su Apple Silicon.")
 
 # Carica il modello e il tokenizer
-model_dir = "./bert_model"  # Cambia questo percorso se il modello è in un'altra directory
+model_dir = "./bert_model_validation"  # Cambia questo percorso se il modello è in un'altra directory
 if not os.path.exists(model_dir):
     raise FileNotFoundError(f"La directory del modello non esiste: {model_dir}")
 
