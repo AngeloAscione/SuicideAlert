@@ -8,7 +8,7 @@ if torch.backends.mps.is_available():
     print("Torch è configurato per utilizzare il backend MPS su Apple Silicon.")
 
 # Carica il modello e il tokenizer
-model_dir = "./bert_model_validation"  # Cambia questo percorso se il modello è in un'altra directory
+model_dir = "./model/bert_model_validation" 
 if not os.path.exists(model_dir):
     raise FileNotFoundError(f"La directory del modello non esiste: {model_dir}")
 
@@ -18,7 +18,6 @@ tokenizer = BertTokenizer.from_pretrained(model_dir)
 model.to(device)
 model.eval()
 
-# Inizia una shell interattiva per testare il modello
 print("\nShell interattiva per testare il modello. Digita 'exit' per uscire.")
 while True:
     prompt = input("Inserisci un testo da analizzare: ")
@@ -37,7 +36,7 @@ while True:
         predicted_class = torch.argmax(logits, dim=-1).item()
 
     # Mappa la predizione alla classe originale
-    label_mapping = {0: "Suicide", 1: "Depression", 2: "Neutral"}  # Aggiorna secondo il tuo dataset
+    label_mapping = {0: "Suicide", 1: "Depression", 2: "Neutral"} 
     predicted_label = label_mapping.get(predicted_class, "Unknown")
 
     print(f"Testo: {prompt}")
