@@ -10,7 +10,7 @@ device = torch.device("mps") if torch.backends.mps.is_available() else torch.dev
 if torch.backends.mps.is_available():
     print("Torch su MPS disponibile")
 
-'''
+
 # Carica il dataset
 df = pd.read_csv("dataset.csv")
 
@@ -33,9 +33,9 @@ dataset = {
 }
 
 # Carica il tokenizer
-'''
+
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-'''
+
 # Funzione di tokenizzazione
 def preprocess_function(examples):
     return tokenizer(examples["text"], truncation=True, padding="max_length", max_length=256)
@@ -50,12 +50,13 @@ for split in tokenized_datasets:
 tokenized_datasets["train"].save_to_disk("./tokenized_train")
 tokenized_datasets["validation"].save_to_disk("./tokenized_validation")
 tokenized_datasets["test"].save_to_disk("./tokenized_test")
-'''
 
+'''
 tokenized_datasets = dict()
 tokenized_datasets["train"] = load_from_disk("./tokenized_train")
 tokenized_datasets["validation"] = load_from_disk("./tokenized_validation")
 tokenized_datasets["test"] = load_from_disk("./tokenized_test")
+'''
 # Carica il modello
 model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=3)
 
@@ -74,7 +75,7 @@ for name, param in model.named_parameters():
 
 model.to(device)
 
-save_dir = "./results_second_model"
+save_dir = "./results/results_second_model"
 
 # Configura gli argomenti per l'addestramento
 training_args = TrainingArguments(
@@ -161,5 +162,5 @@ results = custom_trainer.evaluate(tokenized_datasets["test"])
 print("Risultati sul test set:", results)
 
 # Salva il modello e il tokenizer
-model.save_pretrained("./bert_model_validation")
-tokenizer.save_pretrained("./bert_model_validation")
+model.save_pretrained("./models/bert_model_validation")
+tokenizer.save_pretrained("./models/bert_model_validation")
