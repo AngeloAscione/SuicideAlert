@@ -12,7 +12,7 @@ Il repository è organizzato come segue:
 
 ```
 SuicideAlert/
-│── dataset/                     # Contiene il dataset utilizzato
+│── dataset/                      # Contiene il dataset utilizzato
 │── models/                       # Modelli addestrati e pesi salvati
 │── results/                      # Risultati e metriche di valutazione
 │── requirements.txt              # Dipendenze richieste
