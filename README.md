@@ -14,15 +14,11 @@ Il repository è organizzato come segue:
 SuicideAlert/
 │── dataset/                     # Contiene il dataset utilizzato
 │── models/                       # Modelli addestrati e pesi salvati
-│── scripts/                      # Script per preprocessing, training e valutazione
 │── results/                      # Risultati e metriche di valutazione
-│── logs/                         # Log dell'addestramento
 │── requirements.txt              # Dipendenze richieste
 │── README.md                     # Documentazione del progetto
-│── training.py                    # Script di addestramento del modello
-│── evaluate.py                    # Script di valutazione del modello
-│── preprocess.py                   # Script per pulizia e tokenizzazione del dataset
-│── config.json                     # Configurazione del modello e dei parametri
+│── train.py                      # Script di caricamento dataset, pulizia dataset e addestramento del modello
+│── demo.py                       # Script per demo del modello
 ```
 
 ---
@@ -41,26 +37,22 @@ Per eseguire questo progetto, assicurati di avere:
 
 ### **1️⃣ Clonare il Repository**
 ```bash
-git clone https://github.com/<username>/SuicideAlert.git
+git clone https://github.com/AngeloAscione/SuicideAlert.git
 cd SuicideAlert
 ```
 
-### **2️⃣ Preprocessare il Dataset**
-Posiziona il dataset in formato `.csv` nella cartella `dataset/` e avvia il preprocessing:  
+### **2️⃣ Addestrare il Modello**
 ```bash
-python preprocess.py
+python train.py
 ```
 
-### **3️⃣ Addestrare il Modello**
+### **3️⃣ Prova il Modello**
 ```bash
-python training.py
+python demo.py
 ```
 L'addestramento utilizza il modello **BERT** e congela progressivamente i layer per ottimizzare l'apprendimento.
 
-### **4️⃣ Valutare il Modello**
-```bash
-python evaluate.py
-```
+
 Le metriche di valutazione includono **Accuracy, F1-Score, Precision e Recall**.
 
 ---
@@ -81,9 +73,6 @@ Dopo l'addestramento, il modello ha raggiunto le seguenti performance:
 
 ---
 
-## 📜 **Licenza**  
-Questo progetto è distribuito sotto la **licenza MIT**.  
-
 ## 📩 **Contatti**  
 Per suggerimenti o domande:  
-✉️ **Nome Cognome** – [tuoemail@example.com](mailto:tuoemail@example.com)  
+✉️ **Angelo Ascione** – [a.ascione19@studenti.unisa.it](mailto:a.ascione19@studenti.unisa.it)  
